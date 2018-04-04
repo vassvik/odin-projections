@@ -9,6 +9,8 @@ import font_gl "shared:odin-gl_font/font_opengl.odin";
 
 
 
+
+
 main :: proc() {
 	//
 	window_size = [2]int{900, 900};
@@ -61,8 +63,6 @@ main :: proc() {
 	}
 
 	t1 := glfw.GetTime();
-	ratio := f32(window_size[0])/f32(window_size[1]);
-	cam_box := 1.0*Vec4{-1.0*ratio, -1.0, 1.0*ratio, 1.0};
 
 	// geometry
 	height_walls :: 3.0;
@@ -170,6 +170,34 @@ main :: proc() {
     gl.VertexAttribPointer(1, 3, gl.FLOAT, gl.FALSE, size_of(Vertex), rawptr(uintptr(size_of(Vec3))));
 	
 	
+
+    //
+    Number :: enum {
+    	half,
+    	one,
+    	two,
+    	sqrt2,
+    	sqrt3,
+    	isqrt2,
+    	isqrt3,
+    	num
+    };
+
+    numbers_value := [7]f32 {
+    	0.5,
+    	1.0,
+    	2.0,
+    	math.SQRT_TWO,
+    	math.SQRT_THREE,
+    	1.0/math.SQRT_TWO,
+    	1.0/math.SQRT_THREE,
+    };
+
+
+    dir := [3]Number{Number.one, Number.one, Number.one};
+
+
+
 	//
 	gl.ClearColor(1.0, 0.7, 0.4, 1.0);
 	for !glfw.WindowShouldClose(window) {
@@ -206,42 +234,14 @@ main :: proc() {
 			}
 		}
 
-		//
-		xend := cam_box[0] + (cam_box[2] - cam_box[0])*f32(input.mouse_position.x/f32(window_size[0]));
-		yend := cam_box[1] + (cam_box[3] - cam_box[1])*f32((f32(window_size[1]) - input.mouse_position.y)/f32(window_size[1]));
-
-		mouse_xy := Vec2{xend, yend};
-
-		// handle scroll
-		if (input.mousewheel_delta != 0.0) {
-			zoom_factor := cast(f32)math.pow(0.95, input.mousewheel_delta);
-
-			x := (1.0-zoom_factor)*xend + zoom_factor*cam_box[0];       // update lower left corner
-			y := (1.0-zoom_factor)*yend + zoom_factor*cam_box[1];
-
-			dx := (cam_box[2] - cam_box[0])*zoom_factor;
-			dy := (cam_box[3] - cam_box[1])*zoom_factor;
-			cam_box = Vec4{x, y, x + dx, y + dy};
-		}
-
-		// handle pan
-		if is_button_down(input.buttons[0]) {
-			dx := (cam_box[2] - cam_box[0])/f32(window_size[0])*f32(-input.mouse_position_delta.x);
-			dy := (cam_box[3] - cam_box[1])/f32(window_size[1])*f32(+input.mouse_position_delta.y);
-
-			cam_box = Vec4{cam_box[0] + dx, cam_box[1] + dy, cam_box[2] + dx, cam_box[3] + dy};
-		}
-
 		for i in 0...9 {
 			if is_key_pressed(input.keys[glfw.KEY_0 + i]) {
 				projection_mode = i;				
 			}
 		}
 		append_to_log(&temp_log, "projection mode = %d", projection_mode);
+		append_to_log(&temp_log, "cam pos = {%s, %s, %s}", dir.x, dir.y, dir.z);
 
-
-		append_to_log(&temp_log, "mouse = %v", mouse_xy);
-		append_to_log(&temp_log, "cam_box = %v", cam_box);
 
 
 		//
@@ -257,8 +257,21 @@ main :: proc() {
 		//
 		gl.UseProgram(program);
 
-		V := math.look_at(math.norm0(math.Vec3{1, 1, 1.0/math.sqrt(f32(3.0))})*22, math.Vec3{0, 0, 0}, math.Vec3{0, 0, 1});
-		P := math.ortho3d(-8.0, 8.0, -8.0, 8.0, -100.0, 100.0);
+		if is_key_pressed(input.keys[glfw.KEY_Q]) {
+			dir.x = (dir.x + 1) % Number.num;
+		}
+
+		if is_key_pressed(input.keys[glfw.KEY_W]) {
+			dir.y = (dir.y + 1) % Number.num;
+		}
+
+		if is_key_pressed(input.keys[glfw.KEY_E]) {
+			dir.z = (dir.z + 1) % Number.num;
+		}
+
+		d := math.Vec3{numbers_value[dir.x], numbers_value[dir.y], numbers_value[dir.z]};
+		V := math.look_at(math.norm0(d)*22, math.Vec3{0, 0, 0}, math.Vec3{0, 0, 1});
+		P := math.ortho3d(-8.0, 8.0, -8.0, 8.0, -200.0, 200.0);
 		//P := math.perspective(30*math.PI/180.0, f32(window_size[0])/f32(window_size[1]), 0.01, 100.0);
 		MVP := math.mul(P, V);
 		gl.UniformMatrix4fv(uniforms["MVP"].location, 1, gl.FALSE, &MVP[0][0]);
@@ -396,7 +409,7 @@ key_callback :: proc"c"(window: glfw.Window_Handle, key, scancode, action, mods:
 	if (keys[key] == PRESS) {
 		keys_clicked_time[key] = current_time;
 	}
-	fmt.printf("key = %d = %v\n", key, keys[key]);
+	//fmt.printf("key = %d = %v\n", key, keys[key]);
 }
 
 button_callback :: proc"c"(window: glfw.Window_Handle, button_, action, mods: i32) {
@@ -423,7 +436,7 @@ button_callback :: proc"c"(window: glfw.Window_Handle, button_, action, mods: i3
 		mouse_position_click[button_] = mouse_position;
 	}
 
-	fmt.printf("button = %d = %v,  %v %v\n", button_, buttons[button_], old_state, new_state);
+	//fmt.printf("button = %d = %v,  %v %v\n", button_, buttons[button_], old_state, new_state);
 }
 
 mouse_callback :: proc"c"(window: glfw.Window_Handle, xpos, ypos: f64) {

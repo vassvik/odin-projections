@@ -16,7 +16,7 @@ void main() {
 
 	    gl_Position = MVP*vec4(pos, 1.0);
 	} else {
-		float size = 64;
+		float size = 128;
 		pos = size*vec3(gl_VertexID % 2 , gl_VertexID / 2, 0) - vec3(vec2(size-8)/2, 0.0); 
 		norm = vec3(0, 0, 1);
 
