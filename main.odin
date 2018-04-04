@@ -173,17 +173,19 @@ main :: proc() {
 
     //
     Number :: enum {
+    	zero,
     	half,
+    	isqrt3,
+    	isqrt2,
     	one,
     	two,
     	sqrt2,
     	sqrt3,
-    	isqrt2,
-    	isqrt3,
     	num
     };
 
-    numbers_value := [7]f32 {
+    numbers_value := [8]f32 {
+    	0.0,
     	0.5,
     	1.0/math.SQRT_THREE,
     	1.0/math.SQRT_TWO,
@@ -270,7 +272,7 @@ main :: proc() {
 		}
 
 		d := math.Vec3{numbers_value[dir.x], numbers_value[dir.y], numbers_value[dir.z]};
-		V := math.look_at(math.norm0(d)*22, math.Vec3{0, 0, 0}, math.Vec3{0, 0, 1});
+		V := math.look_at(math.norm0(d), math.Vec3{0, 0, 0}, math.Vec3{0, 0, 1});
 		P := math.ortho3d(-8.0, 8.0, -8.0, 8.0, -200.0, 200.0);
 		//P := math.perspective(30*math.PI/180.0, f32(window_size[0])/f32(window_size[1]), 0.01, 100.0);
 		MVP := math.mul(P, V);
