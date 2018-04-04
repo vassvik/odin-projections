@@ -185,12 +185,12 @@ main :: proc() {
 
     numbers_value := [7]f32 {
     	0.5,
+    	1.0/math.SQRT_THREE,
+    	1.0/math.SQRT_TWO,
     	1.0,
-    	2.0,
     	math.SQRT_TWO,
     	math.SQRT_THREE,
-    	1.0/math.SQRT_TWO,
-    	1.0/math.SQRT_THREE,
+    	2.0,
     };
 
 
