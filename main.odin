@@ -178,9 +178,9 @@ main :: proc() {
     	isqrt3,
     	isqrt2,
     	one,
-    	two,
     	sqrt2,
     	sqrt3,
+    	two,
     	num
     };
 
